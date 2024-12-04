@@ -180,7 +180,7 @@ int main(int argc, char const *argv[])
         int nbdraws = 0;
         for (int i = 0; i < nbrounds; i++)
         {
-            Player p = agentPlayGame(agentX, agentO, false);
+            Player p = agentPlayGame(agentX, agentO, true); // Modification du verbose a true.
             if (p == X)
                 nbwinX++;
             else if (p == O)

@@ -6,28 +6,33 @@
 #include "agent.h"
 #include "Dict.h"
 
-static bool isBoardValid(Board b)
+static Move agentPlay(Agent *agent, Board board)
 {
-    int countX = 0;
-    int countO = 0;
+    // Basic variabes.
+    int bestScore = -2;
+    Move bestMove = -1;
 
-    for (int i = 0; i < 9; i++)
-    {
-        if (b[i] == 'X')
-            countX++;
-        if (b[i] == 'O')
-            countO++;
-    }
+    for (Move m = 0; m < 9; m++)
+        if (boardValidMove(board, m))
+        {
+            Board nextBoard = boardCopy(board);
+            boardNext(nextBoard, m, agentGetPlayer(agent));
 
-    if (abs(countX - countO) > 1)
-        return false;
+            int score = -GetMinimaxScore(agent, board);
 
-    return true;
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestMove = m;
+            }
+        }
+
+    return bestMove;
 }
 
-static void noEnd(Agent *agent, Board b, Player p)
+static void noEnd(Agent *agent, Board board, Player player)
 {
-    (void)agent, (void)b, (void)p;
+    (void)board, (void)player, (void)agent;
     return;
 }
 
@@ -37,51 +42,19 @@ static void noFree(void *p)
     return;
 }
 
-static Move agentPlay(Agent *agent, Board b)
-{
-
-    bool debug = false;
-
-    // Defines the logic that will make the agent play by computing the optimal move from the optimal score.
-    if (debug)
-        printf("Starting to play !\n");
-    // Initializing condition variables
-    int bestScore = -2; // We use -2 because it's different from -1, 0 and 1.
-    Move bestMove = -1; // We define an optimal move that depends on the optimal score (Initialy, no optimal move.)
-
-    // same logic as Minimax, but this time, we save the optimal move right away.
-    for (Move m = 0; m < 9; m++)
-        if (boardValidMove(b, m))
-        {
-            Board nextBoard = boardCopy(b);
-            boardNext(nextBoard, m, agentGetPlayer(agent));
-            if (debug)
-                printf("Computing score\n");
-            int score = -GetMinimaxScore(agent, nextBoard);
-            boardFree(nextBoard);
-            if (score > bestScore)
-            {
-                bestScore = score;
-                bestMove = m;
-            }
-        }
-
-    // printf("Number of keys in the memory: %zu\n", dictGetNbKeys(agentGetData(agent)));
-
-    return bestMove;
-}
-
 Agent *createAiAgent(void) // Creates the agent
 {
+    // We create a dictionnary of size 12000. That value was given to us by the teacher.
     Dict *memory = dictCreate(12000);
     if (!memory)
     {
         printf("Can't allocate the memory needed for the dictionnary\n");
-        exit(1);
+        exit(1); // Error, close program.
     }
 
     Agent *agent = agentCreate("Minimax agent", agentPlay, noEnd, noFree);
 
+    // We link the dictionnary to the agent.
     agentSetData(agent, memory);
     return agent;
 }
@@ -89,70 +62,65 @@ Agent *createAiAgent(void) // Creates the agent
 int GetMinimaxScore(Agent *agent, Board b)
 {
 
-    bool debug = false;
+    // We first check to see if there is a winner.
+    if (boardWin(b) != E)
+        return (boardWin(b) == agentGetPlayer(agent)) ? 1 : -1; // If the winner is the agent passed in parameter -> 1 if not -1.
 
-    // CHECKING TO AVOID USELESS COMPUTATION.
-    if (boardWin(b) != E) // Someone wins
-        return (boardWin(b) == agentGetPlayer(agent)) ? 1 : -1;
-
-    if (boardIsFull(b)) // It's a tie
+    // We check if there is a tie, by looking if the board is full or not.
+    if (boardIsFull(b))
         return 0;
 
-    // WE CHECK TO SEE IF THE BOARD HAS ALREADY BEEN COMPUTED OR NOT.
-    // We get all the memory matches of the agent.
-
-    if (debug)
-        printf("Accessing memory\n");
-
+    // If we reach here, it means we either don't have a clear winner, or we don't have tie.
+    // We are now going to look after the optimal score.
+    // We first check if the board exists in the memory(dictionnary) of our agent, if yes -> return the score, if not -> continue
     Dict *memory = agentGetData(agent);
+
     if (memory == NULL)
     {
-        if (debug)
-            printf("Memory is NULL\n");
-        return -1;
+        printf("There is no memory linked to the agent.\n");
+        exit(1);
     }
-    // If the board exists, we return the score that is linked to the board.
+
     if (dictContains(memory, b))
     {
-        int *score = dictSearch(memory, b);
-        if (debug)
-            printf("Done accessing memory\n");
+        // The key exists, so it means the board is in the dictionnary.
+        int *score = dictSearch(memory, b); // This returns the score associated to the board.
         if (score != NULL)
             return *score;
     }
-    else
-    {
-        if (debug)
-            printf("Memory does not contain board.\n");
-    }
-    // We compute all the possible boards.
-    int bestScore = -2; // We take an initial value that is different to -1, 0 and 1.
+
+    // The board couldn't be found inside the dictionnary.
+
+    int bestScore = -2; // We choose a number that is different from -1, 0 and 1.
     for (Move m = 0; m < 9; m++)
-        if (boardValidMove(b, m)) // We check if the move is valid.
+    {
+        if (boardValidMove(b, m))
         {
-            // We compute the next board
-            Board nextBoard = boardCopy(b);
-            boardNext(nextBoard, m, agentGetPlayer(agent));
+            // We create a new board that will contain the change.
+            // Board nextBoard = boardCopy(b);
+            // boardNext(nextBoard, m, agentGetPlayer(agent));
 
-            // // We check if the board is valid or not.
-            // if (!isBoardValid(nextBoard))
-            // {
-            //     boardFree(nextBoard);
-            //     continue;
-            // }
+            Board next = boardNext(boardCopy(b), m, boardGetPlayer(agent));
 
-            int score = -GetMinimaxScore(agent, nextBoard); // We compute the negative score.
-            boardFree(nextBoard);                           // We no longer need the board.
-            if (score > bestScore)                          // We take the maximum of both results -> score and bestScore ==> We take the greatest.
+            // We compute the score of that new board.
+
+            /*
+                THIS IS PROBABLY WHERE THE BUG IS.
+                I NEED TO FIND A WAY TO SWAP AGENTS.
+
+            */
+            int score = -GetMinimaxScore(boardGetPlayer(next), next);
+
+            // We compare the score. We keep the highest score.
+            if (score > bestScore)
                 bestScore = score;
         }
-
-    // We need to save the current board and it's score in the memory of the player.
-    int *scoreSave = malloc(sizeof(int)); // -> We are saving a regular int
-    scoreSave = &bestScore;
-    printf("board:%s --> score: %d \n", b, bestScore);
-    printf("---------\n");
+    }
+    // We save boards as they come and go.
+    int *scoreSave = malloc(sizeof(int));
+    *scoreSave = bestScore;
     dictInsert(memory, b, scoreSave);
+    printf("Board:%s||Score: %d\n", b, *scoreSave);
 
     return bestScore;
 }
