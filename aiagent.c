@@ -8,8 +8,26 @@
 
 static Move agentPlay(Agent *agent, Board board)
 {
-    (void)agent, (void)board;
-    return;
+    // Basic variabes.
+    int bestScore = -2;
+    Move bestMove = -1;
+
+    for (Move m = 0; m < 9; m++)
+        if (boardValidMove(board, m))
+        {
+            Board nextBoard = boardCopy(board);
+            boardNext(nextBoard, m, agentGetPlayer(agent));
+
+            int score = -GetMinimaxScore(agent, board);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestMove = m;
+            }
+        }
+
+    return bestMove;
 }
 
 static void noEnd(Agent *agent, Board board, Player player)
@@ -68,13 +86,13 @@ int GetMinimaxScore(Agent *agent, Board b)
     {
         // The key exists, so it means the board is in the dictionnary.
         int *score = dictSearch(memory, b); // This returns the score associated to the board.
-        if (*score != NULL)
+        if (score != NULL)
             return *score;
     }
 
     // The board couldn't be found inside the dictionnary.
 
-    int bestScore = -2; // We choose a number different from -1, 0 and 1.
+    int bestScore = -2; // We choose a number that is different from -1, 0 and 1.
     for (Move m = 0; m < 9; m++)
     {
         if (boardValidMove(b, m))
