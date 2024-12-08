@@ -32,7 +32,7 @@ static int computeBoardsScores(Player player, Board board, Dict *memory)
     }
 
     // We generate all the boards.
-    int bestScore = -2;
+    int maxScore = -2;
     int score;
     for (Move m = 0; m < 9; m++)
     {
@@ -42,25 +42,30 @@ static int computeBoardsScores(Player player, Board board, Dict *memory)
             Board nextBoard = boardNext(boardCopy(board), m, player);
 
             if (dictContains(memory, nextBoard))
-                score = (int)dictSearch(memory, nextBoard);
+            {
+                int *tempScore = (int *)dictSearch(memory, nextBoard);
+                score = *tempScore;
+            }
 
             else
             {
                 score = -computeBoardsScores(boardGetPlayer(nextBoard), nextBoard, memory);
-                dictInsert(memory, nextBoard, (void *)score);
+                int *scorePtr = malloc(sizeof(int));
+                *scorePtr = score;
+                dictInsert(memory, nextBoard, (void *)scorePtr);
             }
 
-            if (score > bestScore)
-                bestScore = score;
+            if (score > maxScore)
+                maxScore = score;
         }
     }
 
-    return bestScore;
+    return maxScore;
 }
 
 static Move AIPlay(Agent *agent, Board board)
 {
-    int bestScore = -2;
+    int maxScore = -2;
     Move bestMove = -1;
     int moves[9];
     int score;
@@ -74,17 +79,18 @@ static Move AIPlay(Agent *agent, Board board)
         if (boardValidMove(board, m))
         {
             Board next = boardNext(boardCopy(board), m, boardGetPlayer(board));
-            score = (int)dictSearch(agentGetData(agent), next);
-            if (score > bestScore)
+            int *tempScore = (int *)dictSearch(agentGetData(agent), next);
+            score = *tempScore;
+            if (score > maxScore)
             {
                 for (int k = 0; k < 9; k++)
                     moves[k] = -2;
-                bestScore = score;
+                maxScore = score;
                 bestMove = m;
                 moves_index = 0;
                 moves[moves_index] = (int)m;
             }
-            else if (score == bestScore)
+            else if (score == maxScore)
                 moves[moves_index++] = m;
         }
     }
