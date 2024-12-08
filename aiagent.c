@@ -108,7 +108,7 @@ static void AIEnd(Agent *agent, Board board, Player player)
 
 static void AIFree(void *param)
 {
-    (void)param;
+    dictFree((Dict *)param);
     return;
 }
 
@@ -132,8 +132,6 @@ Agent *createAiAgent(void) // Creates the agent
         exit(1);
     }
 
-    computeBoardsScores(X, initialBoard, memory);
-
     Agent *minimaxAI = agentCreate("Minimax AI", AIPlay, AIEnd, AIFree);
     if (!minimaxAI)
     {
@@ -143,20 +141,17 @@ Agent *createAiAgent(void) // Creates the agent
         exit(1);
     }
 
-    free(initialBoard);
-
     agentSetData(minimaxAI, memory);
+
+    GetMinimaxScore(minimaxAI, initialBoard);
+
+    free(initialBoard);
 
     return minimaxAI;
 }
 
 int GetMinimaxScore(Agent *agent, Board b)
 {
-    Dict *memory = agentGetData(agent);
-    if (!dictContains(memory, b))
-    {
-        return 0;
-    }
-
-    return -(int)dictSearch(memory, b);
+    computeBoardsScores(agentGetPlayer(agent), b, agentGetData(agent));
+    return 0;
 }

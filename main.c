@@ -159,6 +159,7 @@ int main(int argc, char const *argv[])
                     agentPlayGame(trainingAgent, agentO, false);
             }
             printf("Done.\n");
+            agentFree(trainingAgent);
         }
         // if rl agents are trained, they are not anymore in the tournament.
         if (strcmp(agentXname, "rl") == 0)
@@ -180,7 +181,7 @@ int main(int argc, char const *argv[])
         int nbdraws = 0;
         for (int i = 0; i < nbrounds; i++)
         {
-            Player p = agentPlayGame(agentX, agentO, true); // Modification du verbose a true.
+            Player p = agentPlayGame(agentX, agentO, false);
             if (p == X)
                 nbwinX++;
             else if (p == O)
@@ -192,5 +193,7 @@ int main(int argc, char const *argv[])
         printf("Win of %s (as O): %d\n", agentGetName(agentO), nbwinO);
         printf("Number of draws  : %d\n", nbdraws);
     }
+    agentFree(agentX);
+    agentFree(agentO);
     return 0;
 }

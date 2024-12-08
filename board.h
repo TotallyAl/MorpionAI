@@ -51,7 +51,7 @@ Board boardMakeEmpty(void);
 void boardFree(Board b);
 
 /**
- * @brief create (allocate) a new board with the same content as this once
+ * @brief create (allocate) a new board with the same content as this one
  * 
  * @param b original board
  * 
@@ -92,7 +92,7 @@ bool boardIsFull(Board b);
  * @brief update the board to make a move
  * 
  * NOTE there is no verification that the player can play on this board.
- * It is possible to fill a grid with X using this method, use it appropriately.
+ * It is possible to fill a grid with X only using this method, use it appropriately.
  * 
  * @param b board to be updated
  * @param m move to take
