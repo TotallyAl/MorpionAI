@@ -139,7 +139,7 @@ int main(int argc, char const *argv[])
         printf("Pretraining the rl agent(s) for %d games:\n", nbPretrainGames);
         if (trainingAgent == NULL)
         { // no specific training player
-            printf("%s against %s...", agentXname, agentOname);
+            printf("%s against %s...\n", agentXname, agentOname);
             for (int i = 0; i < nbPretrainGames; i++)
                 agentPlayGame(agentX, agentO, false);
             printf("Done.\n");
@@ -148,13 +148,13 @@ int main(int argc, char const *argv[])
         { // one specific training player
             if (strcmp(agentXname, "rl") == 0)
             {
-                printf("%s against %s...", agentXname, trainingAgentName);
+                printf("%s against %s...\n", agentXname, trainingAgentName);
                 for (int i = 0; i < nbPretrainGames; i++)
                     agentPlayGame(agentX, trainingAgent, false);
             }
             if (strcmp(agentOname, "rl") == 0)
             {
-                printf("%s against %s...", trainingAgentName, agentOname);
+                printf("%s against %s...\n", trainingAgentName, agentOname);
                 for (int i = 0; i < nbPretrainGames; i++)
                     agentPlayGame(trainingAgent, agentO, false);
             }

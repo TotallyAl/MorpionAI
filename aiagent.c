@@ -99,10 +99,10 @@ static Move AIPlay(Agent *agent, Board board)
         int r = rand() % moves_index;
         while (moves[r] == -2)
             r = rand() % moves_index;
-        printf("Picking a random move: %d\n", moves[r]);
+        // printf("Picking a random move: %d\n", moves[r]);
         return moves[r];
     }
-    printf("bestMove: %d\n", bestMove);
+    // printf("bestMove: %d\n", bestMove);
     return bestMove;
 }
 
@@ -123,12 +123,14 @@ Agent *createAiAgent(void) // Creates the agent
 
     Dict *memory = dictCreate(12000);
 
-    Board initialBoard = malloc(10 * sizeof(char));
+    // Board initialBoard = malloc(10 * sizeof(char));
 
-    for (int k = 0; k < 9; k++)
-        initialBoard[k] = E;
+    // for (int k = 0; k < 9; k++)
+    //     initialBoard[k] = E;
 
-    initialBoard[9] = '\0';
+    // initialBoard[9] = '\0';
+
+    Board initialBoard = boardMakeEmpty();
 
     if (!memory)
     {
@@ -159,5 +161,5 @@ Agent *createAiAgent(void) // Creates the agent
 int GetMinimaxScore(Agent *agent, Board b)
 {
     computeBoardsScores(agentGetPlayer(agent), b, agentGetData(agent));
-    return 0;
+    return -42;
 }
