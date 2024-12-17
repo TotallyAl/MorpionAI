@@ -7,6 +7,7 @@
 #include "LinkedList.h"
 
 #define EPSILON 0.25
+#define EPSILON_MACHINE 1e-6
 
 static Move rlPlay(Agent *agent, Board board);
 static void rlEnd(Agent *agent, Board board, Player player);
@@ -67,7 +68,11 @@ static Move bestAverageMoveRandom(List *llTuples)
             bestMoves[movesIndex++] = &tuple->move;
         }
 
-        else if (bestScore == score)
+        // else if (bestScore == score)
+        // bestMoves[movesIndex++] = &tuple->move;
+
+        float deltaScore = bestScore - score;
+        if (deltaScore < EPSILON_MACHINE && deltaScore > -EPSILON_MACHINE)
             bestMoves[movesIndex++] = &tuple->move;
 
         node = llNext(node);
@@ -89,7 +94,6 @@ static Move rlPlay(Agent *agent, Board board)
 
     if (training && probability < EPSILON)
     {
-        // printf("Random move\n");
         unsigned possibleMoves = 0;
         Move moves[9];
 
@@ -106,15 +110,10 @@ static Move rlPlay(Agent *agent, Board board)
 
     else
     {
-        // printf("Not picking a random move\n");
         if (dictContains(data->memory, board))
         {
             List *llTuples = dictSearch(data->memory, board);
-            // Node *node = llHead(llTuples); // When we call llHead, there is a crash.
-            // if (node == NULL)
-            // printf("NODE IS NULL BEFORE BEING CALLED\n");
-            move = bestAverageMoveRandom(llTuples); // This doesn't cause the head to be null.
-            // printf("after crash\n");
+            move = bestAverageMoveRandom(llTuples);
             if (training)
             {
                 data->moves[data->movesPlayed] = move;
@@ -166,10 +165,30 @@ static void rlEnd(Agent *agent, Board board, Player player)
     (void)board;
 }
 
+static void rlFreeMemory(void *value)
+{
+    List *llTuples = (List *)value;
+
+    if (llTuples == NULL)
+        return;
+
+    // Node *node = llHead(llTuples);
+    // while (node != NULL)
+    // {
+    //     tupleMoveScore *tuple = llData(node);
+    //     free(tuple);
+    //     node = llNext(node);
+    // }
+    llFreeData(llTuples); // We don't use llFreeData because we already free the tuples so there is nothing left to free.
+    return;
+}
+
 static void rlFree(void *param)
 {
-    (void)param;
-    printf("freeing !\n");
+    printf("Freeing\n");
+    RlAgentData *data = (RlAgentData *)param;
+    dictFreeValues(data->memory, rlFreeMemory);
+    free(data);
     return;
 }
 

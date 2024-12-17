@@ -151,7 +151,7 @@ Agent *createAiAgent(void) // Creates the agent
 
     agentSetData(minimaxAI, memory);
 
-    GetMinimaxScore(minimaxAI, initialBoard);
+    computeBoardsScores(agentGetPlayer(minimaxAI), initialBoard, agentGetData(minimaxAI));
 
     free(initialBoard);
 
@@ -160,6 +160,9 @@ Agent *createAiAgent(void) // Creates the agent
 
 int GetMinimaxScore(Agent *agent, Board b)
 {
-    computeBoardsScores(agentGetPlayer(agent), b, agentGetData(agent));
-    return -42;
+    Dict *memory = agentGetData(agent);
+    if (!dictContains(memory, b))
+        return 0;
+    int *tempScore = (int *)dictSearch(memory, b);
+    return -(int)*tempScore;
 }
